@@ -220,9 +220,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
-        void OnPaint_02(PWINDOW_DATA pWnd, HDC hdc);
-
-        OnPaint_02(pWnd, hdc);
+        void OnPaint_03(PWINDOW_DATA pWnd, HDC hdc);
+        OnPaint_03(pWnd, hdc);
         EndPaint(hWnd, &ps);
         break;
     }

@@ -41,6 +41,9 @@
     <ClCompile Include="02. 边框绘制.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="03. 画笔.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="图形编程入门.rc">
