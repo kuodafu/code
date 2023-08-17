@@ -149,6 +149,7 @@
     <ClCompile Include="01. 画点画线.cpp" />
     <ClCompile Include="02. 边框绘制.cpp" />
     <ClCompile Include="03. 画笔.cpp" />
+    <ClCompile Include="04. 画刷.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>

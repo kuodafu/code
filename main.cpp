@@ -4,19 +4,17 @@
 #include "pch.h"
 #include <CommCtrl.h>
 
-LRESULT Wndproc_static(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-void re_calc_static_pos(HWND hWnd);
-
 // 全局变量:
 HINSTANCE g_hInst;                                // 当前实例
 
-#define ID_DOTLINE  1000    // 画点画线
+#define ID_STAR     1000    // 画星
+#define ID_POLYLINE 1001    // 画折线
 
-#define ID_STATIC_LEFTTOP       2001    // 左上, 调整矩形
-#define ID_STATIC_RIGHTBOTTOM   2002    // 右下, 调整矩形
+#define ID_TIMER    1002    // 定时器
 
-#define ID_STATIC_TOP           2003    // 顶边, 调整坐标
-#define ID_STATIC_BOTTOM        2004    // 底边, 调整坐标
+#define ID_CHECK    1003    // 复选框, 选择模式
+
+
 
 static int m_right;     // 距离右边的距离
 static int m_bottom;    // 距离底边的距离
@@ -89,42 +87,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 
 
-void GetStaticRect(HWND hParent, RECT& rc1, RECT& rc2)
-{
-    POINT pt = { 0 };
-    ClientToScreen(hParent, &pt);  // 得到窗口的客户区在屏幕上的坐标
-
-    // 获取组件在父窗口里的位置
-    auto pfn_getpos = [pt, hParent](int id, RECT& rc)
-        {
-            GetWindowRect(GetDlgItem(hParent, id), &rc);
-            const int cxStatic = rc.right - rc.left;
-            const int cyStatic = rc.bottom - rc.top;
-            rc.left -= pt.x;
-            rc.top -= pt.y;
-            rc.right = rc.left + cxStatic;
-            rc.bottom = rc.top + cyStatic;
-        };
-
-    RECT rcs[4];
-    pfn_getpos(ID_STATIC_LEFTTOP, rcs[0]);
-    pfn_getpos(ID_STATIC_RIGHTBOTTOM, rcs[1]);
-    pfn_getpos(ID_STATIC_TOP, rcs[2]);
-    pfn_getpos(ID_STATIC_BOTTOM, rcs[3]);
-
-    // rc1 = 显示矩形的位置
-    // rc2 = 第一个坐标和第二个坐标的位置
-    rc1.left = rcs[0].right;
-    rc1.top = rcs[0].bottom;
-    rc1.right = rcs[1].left;
-    rc1.bottom = rcs[1].top;
-
-    rc2.left = rcs[2].right;
-    rc2.top = rcs[2].bottom;
-    rc2.right = rcs[3].left;
-    rc2.bottom = rcs[3].top;
-}
-
 //
 //  函数: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -152,48 +114,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_CREATE:
     {
         DWORD style = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS;
-        //CreateWindowExW(0, WC_BUTTONW, L"画点画线", style, 10, 10, 80, 32, hWnd, (HMENU)ID_DOTLINE, 0, 0);
+        CreateWindowExW(0, WC_BUTTONW, L"画星", style, 10, 10, 80, 32, hWnd, (HMENU)ID_STAR, 0, 0);
+        CreateWindowExW(0, WC_BUTTONW, L"画图形", style, 10, 10, 80, 32, hWnd, (HMENU)ID_POLYLINE, 0, 0);
 
-        auto pfn_create = [hWnd](int left, int top, int id)
-            {
-                const DWORD style = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-                const int width = 20;
+        CreateWindowExW(0, WC_BUTTONW, L"选中 = ALTERNATE, 否则 = WINDING", style, 10, 10, 80, 32, hWnd, (HMENU)ID_CHECK, 0, 0);
 
-                HWND hStatic = CreateWindowExW(0, L"#32770", 0, style,
-                    left, top, width, width, hWnd, (HMENU)(LONG_PTR)id, 0, 0);
-                // 标签的子类化消息处理函数
-                auto oldProc = SetWindowLongPtrW(hStatic, GWLP_WNDPROC, (LONG_PTR)Wndproc_static);
-                SetPropW(hStatic, L"proc", (LPVOID)oldProc);
-            };
 
-        RECT rc;
-        GetClientRect(hWnd, &rc);
-        const int cxClient = rc.right - rc.left;
-        const int cyClient = rc.bottom - rc.top;
-        const int height = 20;
-
-        pfn_create(10, 10, ID_STATIC_LEFTTOP);
-        pfn_create(cxClient - height - 100, cyClient - height - 10, ID_STATIC_RIGHTBOTTOM);
-
-        pfn_create(200, 10, ID_STATIC_TOP);
-        pfn_create(200, cyClient - height - 10, ID_STATIC_BOTTOM);
-
-        re_calc_static_pos(hWnd);
         break;
     }
     case WM_SIZE:
     {
         const int cxClient = LOWORD(lParam);
         const int cyClient = HIWORD(lParam);
-        HWND hBtn = GetDlgItem(hWnd, ID_DOTLINE);
+        HWND hBtn1 = GetDlgItem(hWnd, ID_STAR);
+        HWND hBtn2 = GetDlgItem(hWnd, ID_POLYLINE);
+        HWND hBtn3 = GetDlgItem(hWnd, ID_CHECK);
 
-        MoveWindow(hBtn, cxClient - 88, 8, 80, 32, TRUE);
-
-        HWND hStatic = GetDlgItem(hWnd, ID_STATIC_RIGHTBOTTOM);
-
-        SetWindowPos(hStatic, 0,
-            cxClient - m_right, cyClient - m_bottom, 0, 0,
-            SWP_NOSIZE | SWP_NOZORDER);
+        MoveWindow(hBtn1, 10, 10, 200, 32, TRUE);
+        MoveWindow(hBtn2, 10, 48, 200, 32, TRUE);
+        MoveWindow(hBtn3, 10, 88, 200, 32, TRUE);
 
         break;
     }
@@ -203,11 +142,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // 分析菜单选择:
         switch ( id )
         {
-        case ID_DOTLINE:
+        case ID_STAR:
         {
-            void OnPaint_dot_line(PWINDOW_DATA pWnd, HDC hdc);
+            void OnPaint_star_04(PWINDOW_DATA pWnd, HDC hdc);
             HDC hdc = GetDC(hWnd);
-            OnPaint_dot_line(pWnd, hdc);
+            OnPaint_star_04(pWnd, hdc);
             ReleaseDC(hWnd, hdc);
             break;
         }
@@ -220,8 +159,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
-        void OnPaint_03(PWINDOW_DATA pWnd, HDC hdc);
-        OnPaint_03(pWnd, hdc);
+        void OnPaint_04(PWINDOW_DATA pWnd, HDC hdc);
+        OnPaint_04(pWnd, hdc);
         EndPaint(hWnd, &ps);
         break;
     }
@@ -234,80 +173,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-void re_calc_static_pos(HWND hWnd)
+bool isCheck(HWND hParent)
 {
-    RECT rc;
-    GetClientRect(hWnd, &rc);
-    const int cxClient = rc.right - rc.left;
-    const int cyClient = rc.bottom - rc.top;
 
-    POINT pt = { 0 };
-    ClientToScreen(hWnd, &pt);  // 得到窗口的客户区在屏幕上的坐标
-
-    RECT rcStatic;
-    GetWindowRect(GetDlgItem(hWnd, ID_STATIC_RIGHTBOTTOM), &rcStatic);
-    const int cxStatic = rcStatic.right - rcStatic.left;
-    const int cyStatic = rcStatic.bottom - rcStatic.top;
-    rcStatic.left -= pt.x;
-    rcStatic.top -= pt.y;
-    rcStatic.right = rcStatic.left + cxStatic;
-    rcStatic.bottom = rcStatic.top + cyStatic;
-
-
-    m_right = cxClient - rcStatic.left;
-    m_bottom = cyClient - rcStatic.top;
 }
-
-LRESULT Wndproc_static(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    WNDPROC oldProc = (WNDPROC)GetPropW(hWnd, L"proc");
-    switch (message)
-    {
-    case WM_NCHITTEST:
-        return HTCAPTION;
-    case WM_MOVE:
-    {
-        const int id = GetDlgCtrlID(hWnd);
-        HWND hParent = GetParent(hWnd);
-        if (id == ID_STATIC_RIGHTBOTTOM)
-        {
-            re_calc_static_pos(hParent);
-        }
-        RECT rc1, rc2;
-        GetStaticRect(hParent, rc1, rc2);
-
-        wchar_t dbg[260];
-        swprintf_s(dbg, L"矩形尺寸{%d,%d,%d,%d}, 第二坐标{%d,%d,%d,%d}",
-            rc1.left, rc1.top, rc1.right, rc1.bottom,
-            rc2.left, rc2.top, rc2.right, rc2.bottom
-            );
-        SetWindowTextW(hParent, dbg);
-
-        InvalidateRect(hParent, 0, 0);
-        break;
-    }
-    case WM_DESTROY:
-    {
-        SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)oldProc);
-        RemovePropW(hWnd, L"proc");
-        break;
-    }
-    case WM_PAINT:
-    {
-        PAINTSTRUCT ps;
-        BeginPaint(hWnd, &ps);
-
-        RECT rc;
-        GetClientRect(hWnd, &rc);
-
-        FillRect(ps.hdc, &rc, (HBRUSH)GetStockObject(GRAY_BRUSH));
-
-        EndPaint(hWnd, &ps);
-        return 0;
-    }
-    default:
-        break;
-    }
-    return CallWindowProcW(oldProc, hWnd, message, wParam, lParam);
-};
-
