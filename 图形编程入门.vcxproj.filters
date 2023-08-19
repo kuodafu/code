@@ -50,6 +50,9 @@
     <ClCompile Include="05. 综合练习.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="06. 字体.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="图形编程入门.rc">

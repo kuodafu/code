@@ -151,6 +151,7 @@
     <ClCompile Include="03. 画笔.cpp" />
     <ClCompile Include="04. 画刷.cpp" />
     <ClCompile Include="05. 综合练习.cpp" />
+    <ClCompile Include="06. 字体.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>

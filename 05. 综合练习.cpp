@@ -1,18 +1,240 @@
 #include "pch.h"
+
 void OnPaint_05_line1(PWINDOW_DATA pWnd, HDC hdc);
 void OnPaint_05_line2(PWINDOW_DATA pWnd, HDC hdc);
 void OnPaint_05_line3(PWINDOW_DATA pWnd, HDC hdc);
 void OnPaint_05_black_dot(PWINDOW_DATA pWnd, HDC hdc);
 void OnPaint_05_iphone5(PWINDOW_DATA pWnd, HDC hdc);
 void OnPaint_05_ddm(HWND hwnd, HDC hdc);
+
+#if 0
+// 图形编程入门.cpp : 定义应用程序的入口点。
+//
+
+#include "pch.h"
+#include <CommCtrl.h>
+
+// 全局变量:
+HINSTANCE g_hInst;                                // 当前实例
+
+#define ID_LISTBOX  1001
+#define ID_CHECK    1002
+static int m_index;
+
+int GetListIndex()
+{
+    return m_index;
+}
+
+LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
+
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
+                      _In_opt_ HINSTANCE hPrevInstance,
+                      _In_ LPWSTR    lpCmdLine,
+                      _In_ int       nCmdShow)
+{
+    UNREFERENCED_PARAMETER(hPrevInstance);
+    UNREFERENCED_PARAMETER(lpCmdLine);
+
+    // TODO: 在此处放置代码。
+
+
+
+    WNDCLASSEXW wcex;
+
+    wcex.cbSize = sizeof(WNDCLASSEX);
+
+    wcex.style = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc = WndProc;
+    wcex.cbClsExtra = 0;
+    wcex.cbWndExtra = 0;
+    wcex.hInstance = hInstance;
+    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MY));
+    wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wcex.lpszMenuName = 0;// MAKEINTRESOURCEW(IDC_MY);
+    wcex.lpszClassName = L"吹牛装逼群: 20752843";
+    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+
+    ATOM atom = RegisterClassExW(&wcex);
+
+    // 执行应用程序初始化:
+    g_hInst = hInstance; // 将实例句柄存储在全局变量中
+
+    WINDOW_DATA wnd = { 0 };
+    HWND hWnd = CreateWindowExW(0, wcex.lpszClassName, L"主讲: 福仔 (@扩大福) kuodafu.com",
+                                WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,
+                                1920 + 100, 100, 800, 600, nullptr, nullptr, hInstance, &wnd);
+
+    int ret = 0;
+    if ( hWnd )
+    {
+        ShowWindow(hWnd, nCmdShow);
+        UpdateWindow(hWnd);
+
+        HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_MY));
+
+        MSG msg;
+
+        // 主消息循环:
+        while ( GetMessage(&msg, nullptr, 0, 0) )
+        {
+            if ( !TranslateAccelerator(msg.hwnd, hAccelTable, &msg) )
+            {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
+        }
+
+        ret = (int)msg.wParam;
+    }
+    return ret;
+}
+
+
+
+//
+//  函数: WndProc(HWND, UINT, WPARAM, LPARAM)
+//
+//  目标: 处理主窗口的消息。
+//
+//  WM_COMMAND  - 处理应用程序菜单
+//  WM_PAINT    - 绘制主窗口
+//  WM_DESTROY  - 发送退出消息并返回
+//
+//
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    if ( message == WM_NCCREATE )
+    {
+        LPCREATESTRUCTW cs = (LPCREATESTRUCTW)lParam;
+        PWINDOW_DATA pWnd = (PWINDOW_DATA)cs->lpCreateParams;
+        pWnd->hWnd = hWnd;
+        SetWindowLongPtrW(hWnd, GWLP_USERDATA, (LONG_PTR)pWnd);
+    }
+    PWINDOW_DATA pWnd = (PWINDOW_DATA)GetWindowLongPtrW(hWnd, GWLP_USERDATA);
+
+
+    switch ( message )
+    {
+    case WM_CREATE:
+    {
+        m_index = 0;
+        DWORD style = WS_TABSTOP | WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS
+            | LBS_NOTIFY | LBS_USETABSTOPS | LBS_NOINTEGRALHEIGHT;
+        if ( 1 )
+        {
+            HWND hList = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTBOXW, 0,
+                                         style, 0, 0, 0, 0, hWnd, (HMENU)ID_LISTBOX, 0, 0);
+            const LPCWSTR str[] =
+            {
+                L"清除",
+                L"画辅助线",
+                L"画头",
+                L"画脸",
+                L"画眼睛",
+                L"画鼻子",
+                L"画嘴巴",
+                L"画胡子",
+                L"画身体",
+                L"画肚子",
+                L"画项圈",
+                L"画铃铛",
+                L"画口袋",
+                L"画脚",
+                L"画左手",
+                L"画右手",
+                L"擦除黑线",
+            };
+
+            for ( LPCWSTR s : str )
+                SendMessageW(hList, LB_ADDSTRING, 0, (LPARAM)s);
+        }
+
+        if ( 0 )
+        {
+            style = WS_TABSTOP | WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX;
+            CreateWindowExW(0, WC_BUTTONW, L"去掉方格", style, 0, 0, 0, 0, hWnd, (HMENU)ID_CHECK, 0, 0);
+        }
+        break;
+    }
+    case WM_SIZE:
+    {
+        const int cxClient = LOWORD(lParam);
+        const int cyClient = HIWORD(lParam);
+        HWND hList = GetDlgItem(hWnd, ID_LISTBOX);
+        HWND hCheck = GetDlgItem(hWnd, ID_CHECK);
+
+        const int width = 100;
+        MoveWindow(hList, cxClient - width, 0, width, cyClient, TRUE);
+
+        MoveWindow(hCheck, 10, 10, 100, 20, TRUE);
+        break;
+    }
+    case WM_COMMAND:
+    {
+        int id = LOWORD(wParam);
+        // 分析菜单选择:
+        switch ( id )
+        {
+        case ID_LISTBOX:
+        {
+            if ( HIWORD(wParam) == LBN_SELCHANGE )
+            {
+                m_index = (int)SendMessageW((HWND)lParam, LB_GETCURSEL, 0, 0);
+                InvalidateRect(hWnd, 0, 0);
+            }
+            break;
+        }
+        case ID_CHECK:
+            InvalidateRect(hWnd, 0, 0);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
+        }
+        break;
+    }
+    case WM_PAINT:
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWnd, &ps);
+        void OnPaint_05(PWINDOW_DATA pWnd, HDC hdc);
+        OnPaint_05(pWnd, hdc);
+        EndPaint(hWnd, &ps);
+        break;
+    }
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        break;
+    default:
+        return DefWindowProc(hWnd, message, wParam, lParam);
+    }
+    return 0;
+}
+
+bool isCheck(HWND hParent)
+{
+    HWND hBtn = GetDlgItem(hParent, ID_CHECK);
+    int r = (int)(INT_PTR)SendMessageW(hBtn, BM_GETCHECK, 0, 0);
+    return r == BST_CHECKED;
+}
+#endif
+
+bool isCheck(HWND hParent)
+{
+    //HWND hBtn = GetDlgItem(hParent, ID_CHECK);
+    //int r = (int)(INT_PTR)SendMessageW(hBtn, BM_GETCHECK, 0, 0);
+    //return r == BST_CHECKED;
+    return false;
+}
 void OnPaint_05(PWINDOW_DATA pWnd, HDC hdc)
 {
-    OnPaint_05_line1(pWnd, hdc);
+    //OnPaint_05_line1(pWnd, hdc);
     //OnPaint_05_line2(pWnd, hdc);
     //OnPaint_05_line3(pWnd, hdc);
     //OnPaint_05_black_dot(pWnd, hdc);
     //OnPaint_05_iphone5(pWnd, hdc);
-    //OnPaint_05_ddm(pWnd->hWnd, hdc);
+    OnPaint_05_ddm(pWnd->hWnd, hdc);
 }
 
 // 比较两条直线的长度
@@ -23,7 +245,7 @@ void OnPaint_05_line1(PWINDOW_DATA pWnd, HDC hdc)
     const int cxClient = rcClient.right - rcClient.left;
     const int cyClient = rcClient.bottom - rcClient.top;
     FillRect(hdc, &rcClient, (HBRUSH)GetStockObject(WHITE_BRUSH));
-    HPEN hPen = CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
+    HPEN hPen = CreatePen(PS_INSIDEFRAME, 2, RGB(255, 0, 0));
     HPEN hPenOld = (HPEN)SelectObject(hdc, hPen);
     
     MoveToEx(hdc, 100, 100, 0);
@@ -159,7 +381,6 @@ void OnPaint_05_black_dot(PWINDOW_DATA pWnd, HDC hdc)
     const int cyClient = rcClient.bottom - rcClient.top;
     FillRect(hdc, &rcClient, (HBRUSH)GetStockObject(BLACK_BRUSH));
 
-    HBRUSH hBrushOld = (HBRUSH)SelectObject(hdc, GetStockObject(BLACK_BRUSH));
     HPEN hPen = CreatePen(PS_INSIDEFRAME, 10, RGB(135, 135, 135));
     HPEN hPenOld = (HPEN)SelectObject(hdc, hPen);
 
@@ -178,8 +399,8 @@ void OnPaint_05_black_dot(PWINDOW_DATA pWnd, HDC hdc)
         LineTo(hdc, cxClient, y);
     }
 
-    SelectObject(hdc, GetStockObject(WHITE_BRUSH));
-    SelectObject(hdc, GetStockObject(NULL_PEN));
+    HBRUSH hBrushOld = (HBRUSH)SelectObject(hdc, GetStockObject(WHITE_BRUSH));
+    SelectObject(hdc, GetStockObject(WHITE_PEN));
 
     for ( int i = 0; i < count1; i++ )
     {
@@ -187,8 +408,8 @@ void OnPaint_05_black_dot(PWINDOW_DATA pWnd, HDC hdc)
         {
             const int x = 20 + i * 50;
             const int y = 20 + j * 50;
-            const int bj = 7;
-            Ellipse(hdc, x - bj, y - bj, x + bj, y + bj);
+            const int r = 7;
+            Ellipse(hdc, x - r, y - r, x + r, y + r);
         }
     }
 
@@ -218,6 +439,7 @@ void OnPaint_05_iphone5(PWINDOW_DATA pWnd, HDC hdc)
 
     SelectObject (hdc, hPenOld);
     DeleteObject (hPen);
+    hPen = 0;
 
     // -----------画外框
     RoundRect (hdc, cxClient / 2 - 110, 50, cxClient / 2 + 110, cyClient - 50, 50, 50);
@@ -254,6 +476,7 @@ void OnPaint_05_iphone5(PWINDOW_DATA pWnd, HDC hdc)
     Rectangle (hdc, cxClient / 2 - 10, cyClient - 110 + 20, cxClient / 2 + 10, cyClient - 110 + 20 + 20);
     SelectObject (hdc, hPenOld);
     DeleteObject (hPen);
+    hPen = 0;
 
     // -----------画4条边框线;
     Rectangle (hdc, cxClient / 2 - 107, 80, cxClient / 2 - 110, 82);
@@ -269,18 +492,15 @@ void OnPaint_05_ddm(HWND hwnd, HDC hdc)
     RECT rect;
     HPEN hBlackPen = 0, hOldPen, hWhite2Pen = 0;
     HBRUSH hOldBrush = 0, hRedBrush = 0, hYellowBrush = 0;
-    HBRUSH blue_brush = 0, green_brush = 0;
-    HPEN blue_pen = 0, green_pen = 0;
+    HBRUSH blue_brush = 0;
+    HPEN blue_pen = 0;
     POINT pxRightHand[4], pxiLeftHand[4];
 
-    int GetListIndex();
-    const int index = GetListIndex();
+    //int GetListIndex();
+    const int index = 0;// GetListIndex();
 
-    green_brush = CreateSolidBrush(RGB(0, 255, 127));//绿色画刷
 
-    blue_pen = CreatePen(PS_SOLID, 3, RGB(0, 159, 232));//蓝色画笔
-    green_pen = CreatePen(PS_SOLID, 3, RGB(0, 255, 127));//绿色画笔
-
+    
     GetClientRect(hwnd, &rect);//获取客户矩形
     rect.right -= 100;  // 减去列表框的宽度
     const int cxClient = rect.right - rect.left;
@@ -505,6 +725,7 @@ void OnPaint_05_ddm(HWND hwnd, HDC hdc)
     //擦除手臂与身体连接黑线
     if ( index > 15 )
     {
+        blue_pen = CreatePen(PS_SOLID, 3, RGB(0, 159, 232));//蓝色画笔
         SelectObject(hdc, blue_pen);
         MoveToEx(hdc, rect.right / 2 - 90, rect.bottom / 2 + 10, NULL);
         LineTo(hdc, rect.right / 2 - 90, rect.bottom / 2 + 50);
@@ -518,7 +739,5 @@ void OnPaint_05_ddm(HWND hwnd, HDC hdc)
     DeleteObject(hRedBrush);
     DeleteObject(hYellowBrush);
     DeleteObject(blue_brush);
-    DeleteObject(green_brush);
     DeleteObject(blue_pen);
-    DeleteObject(green_pen);
 }
